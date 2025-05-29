@@ -108,7 +108,7 @@ function App() {
             
             {/* Rotas privadas */}
             <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               
               <Route path="employees">
