@@ -94,6 +94,20 @@ const theme = createTheme({
   },
 });
 
+// Componente de redirecionamento simples
+const HomePage = () => {
+  return (
+    <div style={{ 
+      padding: '20px', 
+      textAlign: 'center', 
+      marginTop: '50px' 
+    }}>
+      <h1>Bem-vindo ao Sistema</h1>
+      <p>Selecione uma opção no menu para começar.</p>
+    </div>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -108,7 +122,8 @@ function App() {
             
             {/* Rotas privadas */}
             <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              <Route index element={<Dashboard />} />
+              {/* Substituído o Navigate por uma página inicial simples */}
+              <Route index element={<HomePage />} />
               <Route path="dashboard" element={<Dashboard />} />
               
               <Route path="employees">
