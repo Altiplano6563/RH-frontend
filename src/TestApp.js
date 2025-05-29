@@ -1,6 +1,5 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
+// Removendo a importação do index.css
 
 // Componente de teste simples
 const TestApp = () => {
