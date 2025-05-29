@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
@@ -94,19 +94,9 @@ const theme = createTheme({
   },
 });
 
-// Componente de redirecionamento usando useNavigate
-const RedirectToDashboard = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    navigate('/dashboard');
-  }, [navigate]);
-  
-  return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      Redirecionando...
-    </div>
-  );
+// Componente de redirecionamento para o Dashboard
+const IndexRedirect = () => {
+  return <Dashboard />;
 };
 
 function App() {
@@ -123,8 +113,8 @@ function App() {
             
             {/* Rotas privadas */}
             <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              {/* Usando o componente de redirecionamento personalizado em vez de Navigate */}
-              <Route index element={<RedirectToDashboard />} />
+              {/* Usando o componente Dashboard diretamente na rota inicial */}
+              <Route index element={<IndexRedirect />} />
               <Route path="dashboard" element={<Dashboard />} />
               
               <Route path="employees">
