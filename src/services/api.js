@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Criar instância do axios com configurações base
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'https://sistema-rh-backend-production.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
   },
