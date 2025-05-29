@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
@@ -94,11 +94,6 @@ const theme = createTheme({
   },
 });
 
-// Componente de redirecionamento para o Dashboard
-const IndexRedirect = () => {
-  return <Dashboard />;
-};
-
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -113,8 +108,8 @@ function App() {
             
             {/* Rotas privadas */}
             <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              {/* Usando o componente Dashboard diretamente na rota inicial */}
-              <Route index element={<IndexRedirect />} />
+              {/* Usando o Dashboard diretamente na rota raiz */}
+              <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               
               <Route path="employees">
