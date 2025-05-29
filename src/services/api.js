@@ -3,7 +3,7 @@ export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://sistema-rh
 
 // Criar instância do axios com configurações base
 const api = axios.create({
-  baseURL: APP_API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
