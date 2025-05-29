@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
@@ -94,16 +94,17 @@ const theme = createTheme({
   },
 });
 
-// Componente de redirecionamento simples
-const HomePage = () => {
+// Componente de redirecionamento usando useNavigate
+const RedirectToDashboard = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+  
   return (
-    <div style={{ 
-      padding: '20px', 
-      textAlign: 'center', 
-      marginTop: '50px' 
-    }}>
-      <h1>Bem-vindo ao Sistema</h1>
-      <p>Selecione uma opção no menu para começar.</p>
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      Redirecionando...
     </div>
   );
 };
@@ -122,8 +123,8 @@ function App() {
             
             {/* Rotas privadas */}
             <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              {/* Substituído o Navigate por uma página inicial simples */}
-              <Route index element={<HomePage />} />
+              {/* Usando o componente de redirecionamento personalizado em vez de Navigate */}
+              <Route index element={<RedirectToDashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               
               <Route path="employees">
