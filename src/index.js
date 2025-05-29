@@ -1,11 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// Removendo a importação do index.css
-import TestApp from './TestApp';
+import SimpleApp from './SimpleApp';
 
 ReactDOM.render(
   <React.StrictMode>
-    <TestApp />
+    <SimpleApp />
   </React.StrictMode>,
   document.getElementById('root')
 );
