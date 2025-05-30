@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SimpleAuthApp from './SimpleAuthApp';
+import FinalApp from './FinalApp';
 
 ReactDOM.render(
   <React.StrictMode>
-    <SimpleAuthApp />
+    <FinalApp />
   </React.StrictMode>,
   document.getElementById('root')
 );
