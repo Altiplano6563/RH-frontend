@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Criando o contexto de autenticação
-export const AuthContext = createContext(); // Adicione "export" aqui
+const AuthContext = createContext();
 
 // Hook personalizado para usar o contexto de autenticação
 export const useAuth = () => {
@@ -14,13 +14,13 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Função de login simulada
+  // Função de login
   const login = (email, password) => {
     // Simulando uma autenticação bem-sucedida
     const user = {
       id: '1',
       name: 'Usuário Teste',
-      email: email,
+      email: email || 'teste@exemplo.com',
       role: 'admin'
     };
     
@@ -55,9 +55,14 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setCurrentUser(user);
-      setIsAuthenticated(true);
+      try {
+        const user = JSON.parse(storedUser);
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Erro ao analisar usuário armazenado:', error);
+        localStorage.removeItem('user');
+      }
     }
     
     setLoading(false);
@@ -79,3 +84,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext };

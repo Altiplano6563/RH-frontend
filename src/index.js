@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import WorkingApp from './WorkingApp';
+import ProtectedApp from './ProtectedApp';
 
 ReactDOM.render(
   <React.StrictMode>
-    <WorkingApp />
+    <ProtectedApp />
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -12,6 +12,9 @@ import Box from '@mui/material/Box';
 // Importando o contexto de autenticação
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
+// Importando o componente PrivateRoute
+import PrivateRoute from './components/PrivateRoute';
+
 // Tema personalizado
 const theme = createTheme({
   palette: {
@@ -27,30 +30,18 @@ const theme = createTheme({
   },
 });
 
-// Página inicial com verificação de autenticação
-const HomePage = () => {
-  const { isAuthenticated } = useAuth();
+// Componente de redirecionamento para o Dashboard
+const IndexRedirect = () => {
   const navigate = useNavigate();
   
   React.useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    } else {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
+    navigate('/dashboard');
+  }, [navigate]);
   
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h3" component="h1" gutterBottom color="primary">
-          Sistema de Gestão
-        </Typography>
-        <Typography variant="body1" paragraph>
-          Redirecionando...
-        </Typography>
-      </Paper>
-    </Container>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      Redirecionando...
+    </div>
   );
 };
 
@@ -143,14 +134,15 @@ const DashboardPage = () => {
           Bem-vindo, {currentUser?.name || 'Usuário'}!
         </Typography>
         <Typography variant="body2" paragraph>
-          Esta é a página do dashboard.
+          Esta é a página do dashboard protegida.
         </Typography>
         <Button 
           variant="contained" 
           color="primary"
           sx={{ mr: 2 }}
+          onClick={() => navigate('/employees')}
         >
-          Ação
+          Funcionários
         </Button>
         <Button 
           variant="contained" 
@@ -164,8 +156,33 @@ const DashboardPage = () => {
   );
 };
 
-// Aplicativo com contexto de autenticação
-const AuthenticatedApp = () => {
+// Página de funcionários simples
+const EmployeesPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h3" component="h1" gutterBottom color="primary">
+          Funcionários
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Lista de funcionários.
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => navigate('/dashboard')}
+        >
+          Voltar para Dashboard
+        </Button>
+      </Paper>
+    </Container>
+  );
+};
+
+// Aplicativo com rotas protegidas
+const ProtectedApp = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -173,8 +190,11 @@ const AuthenticatedApp = () => {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/" element={<HomePage />} />
+            
+            {/* Rotas protegidas */}
+            <Route path="/" element={<PrivateRoute><IndexRedirect /></PrivateRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+            <Route path="/employees" element={<PrivateRoute><EmployeesPage /></PrivateRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
@@ -182,4 +202,4 @@ const AuthenticatedApp = () => {
   );
 };
 
-export default AuthenticatedApp;
+export default ProtectedApp;

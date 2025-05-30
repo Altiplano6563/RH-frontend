@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../contexts/SimpleAuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 
