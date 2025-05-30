@@ -1,4 +1,3 @@
-// src/pages/dashboard/Dashboard.js
 import React from 'react';
 import { Typography, Paper, Grid, Box } from '@mui/material';
 
