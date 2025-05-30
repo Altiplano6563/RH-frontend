@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
-  Container, 
   Typography, 
-  Box, 
-  TextField, 
   Button, 
-  Paper,
+  Paper, 
   Grid,
+  Box,
+  TextField,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  CircularProgress
+  MenuItem
 } from '@mui/material';
-import { ArrowBack, Save } from '@mui/icons-material';
-import { toast } from 'react-toastify';
-import axios from 'axios';
-import { API_BASE_URL } from '../../services/api';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SaveIcon from '@mui/icons-material/Save';
 
 const DepartmentForm = () => {
   const navigate = useNavigate();
@@ -26,178 +22,83 @@ const DepartmentForm = () => {
   
   const [formData, setFormData] = useState({
     name: '',
+    manager: '',
     description: '',
-    parentDepartmentId: '',
-    managerId: '',
-    status: 'active'
+    budget: '',
+    location: ''
   });
   
-  const [departments, setDepartments] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(isEditing);
-  const [errors, setErrors] = useState({});
-
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/departments`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        setDepartments(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar departamentos:', error);
-        toast.error('Erro ao carregar lista de departamentos');
-      }
-    };
-
-    const fetchEmployees = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/employees`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        setEmployees(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar colaboradores:', error);
-        toast.error('Erro ao carregar lista de colaboradores');
-      }
-    };
-
-    fetchDepartments();
-    fetchEmployees();
-
     if (isEditing) {
-      const fetchDepartment = async () => {
-        try {
-          setInitialLoading(true);
-          const response = await axios.get(`${API_BASE_URL}/departments/${id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-          });
-          setFormData(response.data);
-        } catch (error) {
-          console.error('Erro ao buscar departamento:', error);
-          toast.error('Erro ao carregar dados do departamento');
-          navigate('/departments');
-        } finally {
-          setInitialLoading(false);
-        }
-      };
-
-      fetchDepartment();
-    }
-  }, [id, isEditing, navigate]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
+      // Simulando busca de dados do departamento
+      // Em um caso real, aqui seria feita uma chamada à API
+      setFormData({
+        name: 'TI',
+        manager: 'Carlos Santos',
+        description: 'Departamento responsável pela infraestrutura e desenvolvimento de sistemas',
+        budget: '500000',
+        location: 'Andar 3'
       });
     }
+  }, [isEditing, id]);
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name) {
-      newErrors.name = 'Nome do departamento é obrigatório';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
+  
+  const handleSubmit = (e) => {
     e.preventDefault();
+    // Aqui seria feita a chamada à API para salvar os dados
+    console.log('Dados do formulário:', formData);
     
-    if (!validateForm()) {
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      if (isEditing) {
-        await axios.put(`${API_BASE_URL}/departments/${id}`, formData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        toast.success('Departamento atualizado com sucesso!');
-      } else {
-        await axios.post(`${API_BASE_URL}/departments`, formData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        toast.success('Departamento criado com sucesso!');
-      }
-      
-      navigate('/departments');
-    } catch (error) {
-      console.error('Erro ao salvar departamento:', error);
-      toast.error(error.response?.data?.message || 'Erro ao salvar departamento');
-    } finally {
-      setLoading(false);
-    }
+    // Redirecionar após salvar
+    navigate('/departments');
   };
-
-  if (initialLoading) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <CircularProgress />
-        <Typography variant="body1" sx={{ mt: 2 }}>
-          Carregando dados do departamento...
-        </Typography>
-      </Container>
-    );
-  }
-
+  
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
-        <Button 
-          component={Link} 
-          to="/departments" 
-          startIcon={<ArrowBack />}
-          sx={{ mr: 2 }}
-        >
-          Voltar
-        </Button>
-        <Typography variant="h4" component="h1">
-          {isEditing ? 'Editar Departamento' : 'Novo Departamento'}
-        </Typography>
+    <div>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box display="flex" alignItems="center">
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={() => navigate('/departments')}
+            sx={{ mr: 2 }}
+          >
+            Voltar
+          </Button>
+          <Typography variant="h4" component="h1">
+            {isEditing ? 'Editar Departamento' : 'Novo Departamento'}
+          </Typography>
+        </Box>
       </Box>
       
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Nome do Departamento"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                error={!!errors.name}
-                helperText={errors.name}
                 required
               />
             </Grid>
-            
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Gestor Responsável"
+                name="manager"
+                value={formData.manager}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -209,88 +110,42 @@ const DepartmentForm = () => {
                 rows={3}
               />
             </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="parent-department-label">Departamento Superior</InputLabel>
-                <Select
-                  labelId="parent-department-label"
-                  id="parentDepartmentId"
-                  name="parentDepartmentId"
-                  value={formData.parentDepartmentId || ''}
-                  onChange={handleChange}
-                  label="Departamento Superior"
-                >
-                  <MenuItem value="">
-                    <em>Nenhum</em>
-                  </MenuItem>
-                  {departments
-                    .filter(dept => dept.id !== id) // Evita selecionar o próprio departamento como pai
-                    .map(department => (
-                      <MenuItem key={department.id} value={department.id}>
-                        {department.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Orçamento Anual"
+                name="budget"
+                type="number"
+                value={formData.budget}
+                onChange={handleChange}
+                InputProps={{ startAdornment: 'R$ ' }}
+              />
             </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="manager-label">Gestor Responsável</InputLabel>
-                <Select
-                  labelId="manager-label"
-                  id="managerId"
-                  name="managerId"
-                  value={formData.managerId || ''}
-                  onChange={handleChange}
-                  label="Gestor Responsável"
-                >
-                  <MenuItem value="">
-                    <em>Nenhum</em>
-                  </MenuItem>
-                  {employees.map(employee => (
-                    <MenuItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Localização"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+              />
             </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="status-label">Status</InputLabel>
-                <Select
-                  labelId="status-label"
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  label="Status"
+            <Grid item xs={12}>
+              <Box display="flex" justifyContent="flex-end" mt={2}>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  type="submit"
+                  startIcon={<SaveIcon />}
                 >
-                  <MenuItem value="active">Ativo</MenuItem>
-                  <MenuItem value="inactive">Inativo</MenuItem>
-                </Select>
-              </FormControl>
+                  Salvar
+                </Button>
+              </Box>
             </Grid>
           </Grid>
-          
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-              sx={{ py: 1.5, px: 3 }}
-            >
-              {isEditing ? 'Atualizar' : 'Salvar'}
-            </Button>
-          </Box>
         </Box>
       </Paper>
-    </Container>
+    </div>
   );
 };
 

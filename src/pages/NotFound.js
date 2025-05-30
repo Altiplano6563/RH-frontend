@@ -1,33 +1,38 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Paper, Typography, Button, Box } from '@mui/material';
+import { Typography, Paper, Box } from '@mui/material';
 
 const NotFound = () => {
   const navigate = useNavigate();
   
   return (
-    <Container maxWidth="md" sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h1" component="h1" gutterBottom color="error">
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+      <Paper elevation={3} sx={{ p: 4, textAlign: 'center', maxWidth: 500 }}>
+        <Typography variant="h1" color="error" sx={{ fontSize: '5rem', fontWeight: 'bold' }}>
           404
         </Typography>
-        <Typography variant="h4" component="h2" gutterBottom>
+        <Typography variant="h5" gutterBottom>
           Página Não Encontrada
         </Typography>
         <Typography variant="body1" paragraph>
           A página que você está procurando não existe ou foi movida.
         </Typography>
-        <Box mt={4}>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={() => navigate('/dashboard')}
-          >
-            Voltar para o Dashboard
-          </Button>
-        </Box>
+        <button 
+          onClick={() => navigate('/dashboard')}
+          style={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Voltar para Dashboard
+        </button>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 
