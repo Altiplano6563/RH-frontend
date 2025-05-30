@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SimpleApp from './SimpleApp';
+import MaterialApp from './MaterialApp';
 
 ReactDOM.render(
   <React.StrictMode>
-    <SimpleApp />
+    <MaterialApp />
   </React.StrictMode>,
   document.getElementById('root')
 );
