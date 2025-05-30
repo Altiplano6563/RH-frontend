@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -6,30 +6,30 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Contextos
-import { AuthProvider } from './contexts/SimpleAuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Componentes de layout
 import MainLayout from './layouts/MainLayout';
 
 // Páginas de autenticação
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
+import Login from './pages/auth/Login'; // Você precisará criar este componente
+import Register from './pages/auth/Register'; // Você precisará criar este componente
+import ForgotPassword from './pages/auth/ForgotPassword'; // Você precisará criar este componente
 
 // Páginas principais
-import Dashboard from './pages/dashboard/Dashboard';
-import EmployeeList from './pages/employees/EmployeeList';
-import EmployeeDetail from './pages/employees/EmployeeDetail';
-import EmployeeForm from './pages/employees/EmployeeForm';
-import DepartmentList from './pages/departments/DepartmentList';
-import DepartmentForm from './pages/departments/DepartmentForm';
-import PositionList from './pages/positions/PositionList';
-import PositionForm from './pages/positions/PositionForm';
-import MovementList from './pages/movements/MovementList';
-import MovementDetail from './pages/movements/MovementDetail';
-import MovementForm from './pages/movements/MovementForm';
-import Profile from './pages/profile/Profile';
-import NotFound from './pages/NotFound';
+import Dashboard from './pages/dashboard/Dashboard'; // Você precisará criar este componente
+import EmployeeList from './pages/employees/EmployeeList'; // Você precisará criar este componente
+import EmployeeDetail from './pages/employees/EmployeeDetail'; // Você precisará criar este componente
+import EmployeeForm from './pages/employees/EmployeeForm'; // Você precisará criar este componente
+import DepartmentList from './pages/departments/DepartmentList'; // Você precisará criar este componente
+import DepartmentForm from './pages/departments/DepartmentForm'; // Você precisará criar este componente
+import PositionList from './pages/positions/PositionList'; // Você precisará criar este componente
+import PositionForm from './pages/positions/PositionForm'; // Você precisará criar este componente
+import MovementList from './pages/movements/MovementList'; // Você precisará criar este componente
+import MovementDetail from './pages/movements/MovementDetail'; // Você precisará criar este componente
+import MovementForm from './pages/movements/MovementForm'; // Você precisará criar este componente
+import Profile from './pages/profile/Profile'; // Você precisará criar este componente
+import NotFound from './pages/NotFound'; // Você precisará criar este componente
 
 // Componente de rota privada
 import PrivateRoute from './components/PrivateRoute';
@@ -98,7 +98,7 @@ const theme = createTheme({
 const IndexRedirect = () => {
   const navigate = useNavigate();
   
-  React.useEffect(() => {
+  useEffect(() => {
     navigate('/dashboard');
   }, [navigate]);
   
