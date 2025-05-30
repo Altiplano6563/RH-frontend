@@ -1,137 +1,80 @@
-import { createContext, useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../services/api';
-import { toast } from 'react-toastify';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export const AuthContext = createContext();
+// Criando o contexto de autenticação
+const AuthContext = createContext();
 
+// Hook personalizado para usar o contexto de autenticação
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
 
+// Provedor do contexto de autenticação
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkLoggedIn = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        
-        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setUser(response.data);
-      } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-      } finally {
-        setLoading(false);
-      }
+  // Função de login simulada
+  const login = (email, password) => {
+    // Simulando uma autenticação bem-sucedida
+    const user = {
+      id: '1',
+      name: 'Usuário Teste',
+      email: email,
+      role: 'admin'
     };
     
-    checkLoggedIn();
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    // Armazenando no localStorage para persistir a sessão
+    localStorage.setItem('user', JSON.stringify(user));
+    return Promise.resolve(user);
+  };
+
+  // Função de logout
+  const logout = () => {
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('user');
+    return Promise.resolve();
+  };
+
+  // Verificar permissões do usuário
+  const hasPermission = (requiredPermissions) => {
+    if (!currentUser) return false;
+    
+    // Simulando verificação de permissões
+    // Neste exemplo, usuários com role 'admin' têm todas as permissões
+    if (currentUser.role === 'admin') return true;
+    
+    return false;
+  };
+
+  // Verificar se há um usuário armazenado no localStorage ao carregar
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+    }
+    
+    setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password
-      });
-      
-      const { token, refreshToken, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', refreshToken);
-      
-      setUser(user);
-      
-      return user;
-    } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-    navigate('/login');
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao registrar:', error);
-      throw error;
-    }
-  };
-
-  const updateUserProfile = (updatedUser) => {
-    setUser(updatedUser);
-  };
-
-  const refreshToken = async () => {
-    try {
-      const refreshTokenValue = localStorage.getItem('refreshToken');
-      
-      if (!refreshTokenValue) {
-        throw new Error('Refresh token não encontrado');
-      }
-      
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-        refreshToken: refreshTokenValue
-      });
-      
-      const { token, refreshToken: newRefreshToken } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', newRefreshToken);
-      
-      return token;
-    } catch (error) {
-      console.error('Erro ao atualizar token:', error);
-      logout();
-      throw error;
-    }
-  };
-
-  const isAuthenticated = () => {
-    return !!user;
+  // Valores e funções disponibilizados pelo contexto
+  const value = {
+    currentUser,
+    isAuthenticated,
+    loading,
+    login,
+    logout,
+    hasPermission
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        logout,
-        register,
-        updateUserProfile,
-        refreshToken,
-        isAuthenticated
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
