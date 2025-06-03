@@ -1,12 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FinalApp from './FinalApp';
+import './index.css';
 
-// Remova ou comente estas linhas:
-// import '@fontsource/roboto/300.css';
-// import '@fontsource/roboto/400.css';
-// import '@fontsource/roboto/500.css';
-// import '@fontsource/roboto/700.css';
+// Importações do Material UI
+import '@mui/material/styles';
+import '@mui/material/CssBaseline';
 
 ReactDOM.render(
   <React.StrictMode>

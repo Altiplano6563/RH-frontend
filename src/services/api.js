@@ -1,5 +1,5 @@
 import axios from 'axios';
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://sistema-rh-backend-production.up.railway.app';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Criar instância do axios com configurações base
 const api = axios.create({
@@ -42,7 +42,7 @@ api.interceptors.response.use(
         
         // Chamar endpoint de refresh token
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/refresh-token`,
+          `${API_BASE_URL}/auth/refresh-token`,
           { refreshToken }
         );
         
@@ -104,7 +104,7 @@ export const authService = {
   
   // Verificar autenticação
   checkAuth: async () => {
-    const response = await api.get('/auth/check');
+    const response = await api.get('/auth/me');
     return response.data;
   },
   
@@ -241,13 +241,13 @@ export const movementService = {
   
   // Aprovar movimentação
   approveMovement: async (id) => {
-    const response = await api.post(`/movements/${id}/approve`);
+    const response = await api.put(`/movements/${id}/approve`);
     return response.data;
   },
   
   // Rejeitar movimentação
   rejectMovement: async (id, motivoRejeicao) => {
-    const response = await api.post(`/movements/${id}/reject`, { motivoRejeicao });
+    const response = await api.put(`/movements/${id}/reject`, { motivoRejeicao });
     return response.data;
   }
 };
@@ -293,6 +293,12 @@ export const dashboardService = {
   // Obter análise salarial
   getSalaryAnalysis: async () => {
     const response = await api.get('/dashboard/salary-analysis');
+    return response.data;
+  },
+  
+  // Obter comparativo de orçamento
+  getBudgetComparison: async () => {
+    const response = await api.get('/dashboard/budget-comparison');
     return response.data;
   }
 };
