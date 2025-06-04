@@ -77,8 +77,8 @@ export const authService = {
   },
   
   // Login de usuário
-  login: async (email, senha) => {
-    const response = await api.post('/auth/login', { email, senha });
+ login: async (email, senha) => {
+  const response = await api.post('/auth/login', { email, senha });
     const { accessToken, refreshToken, user } = response.data.data;
     
     // Armazenar tokens e dados do usuário
