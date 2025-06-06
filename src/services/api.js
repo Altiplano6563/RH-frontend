@@ -1,5 +1,5 @@
 import axios from 'axios';
-export const API_BASE_URL = 'https://cors-anywhere.herokuapp.com/https://sistema-rh-backend-production.up.railway.app/api';
+export const API_BASE_URL = 'https://sistema-rh-backend-production.up.railway.app/api';
 
 // Criar instância do axios com configurações base
 const api = axios.create({
