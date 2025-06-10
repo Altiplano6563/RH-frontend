@@ -1,254 +1,394 @@
 import axios from 'axios';
+
+// URL base da API
 export const API_BASE_URL = 'https://rh-backend-production.up.railway.app/api';
 
-// Criar instância do axios com configurações base
+// Configuração do axios
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  baseURL: API_BASE_URL
+} );
 
-// Interceptor para adicionar token de autenticação
+// Adicionar token de autenticação em todas as requisições
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
-);
-
-// Interceptor para tratamento de erros e refresh token
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    // Se o erro for 401 (Não autorizado) e não for uma tentativa de refresh
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh-token') {
-      originalRequest._retry = true;
-      
-      try {
-        // Tentar renovar o token
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          // Se não houver refresh token, redirecionar para login
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
-        
-        // Chamar endpoint de refresh token
-        const response = await axios.post(
-          `${API_BASE_URL}/auth/refresh-token`,
-          { refreshToken }
-        );
-        
-        // Atualizar tokens no localStorage
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
-        
-        // Refazer a requisição original com o novo token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axios(originalRequest);
-      } catch (refreshError) {
-        // Se falhar o refresh, limpar tokens e redirecionar para login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
-    }
-    
+  error => {
     return Promise.reject(error);
   }
 );
 
 // Serviços de autenticação
 export const authService = {
-  // Registrar nova empresa e usuário admin
-  register: async (data) => {
-    const response = await api.post('/auth/register', data);
-    return response.data;
-  },
-  
   // Login de usuário
- login: async (email, senha) => {
-  const response = await api.post('/auth/login', { email, senha });
-    const { accessToken, refreshToken, user } = response.data.data;
-    
-    // Armazenar tokens e dados do usuário
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('user', JSON.stringify(user));
-    
-    return response.data;
+  login: async (email, senha) => {
+    try {
+      const response = await api.post('/auth/login', { email, senha });
+      
+      // Armazenar tokens e dados do usuário
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      throw error;
+    }
   },
   
-  // Logout
+  // Logout de usuário
   logout: async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      await api.post('/auth/logout', { refreshToken });
-    } finally {
+      
+      if (refreshToken) {
+        await api.post('/auth/logout', { refreshToken });
+      }
+      
       // Limpar dados de autenticação
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      
+      // Limpar dados mesmo em caso de erro
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      
+      throw error;
     }
-  },
-  
-  // Verificar autenticação
-  checkAuth: async () => {
-    const response = await api.get('/auth/me');
-    return response.data;
-  },
-  
-  // Obter usuário atual do localStorage
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
   },
   
   // Verificar se usuário está autenticado
   isAuthenticated: () => {
     return !!localStorage.getItem('accessToken');
+  },
+  
+  // Obter usuário atual
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+  
+  // Renovar token de acesso
+  refreshToken: async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (!refreshToken) {
+        throw new Error('Refresh token não encontrado');
+      }
+      
+      const response = await api.post('/auth/refresh-token', { refreshToken });
+      
+      // Atualizar tokens
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.data.refreshToken);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao renovar token:', error);
+      throw error;
+    }
   }
 };
 
-// Serviços de colaboradores
+// Serviços de funcionários
 export const employeeService = {
-  // Listar colaboradores com filtros e paginação
-  getEmployees: async (params) => {
-    const response = await api.get('/employees', { params });
-    return response.data;
+  // Listar funcionários
+  getEmployees: async (filters = {}) => {
+    try {
+      const response = await api.get('/employees', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar funcionários:', error);
+      throw error;
+    }
   },
   
-  // Obter colaborador por ID
+  // Obter funcionário por ID
   getEmployeeById: async (id) => {
-    const response = await api.get(`/employees/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/employees/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar funcionário:', error);
+      throw error;
+    }
   },
   
-  // Criar novo colaborador
-  createEmployee: async (data) => {
-    const response = await api.post('/employees', data);
-    return response.data;
+  // Criar funcionário
+  createEmployee: async (employeeData) => {
+    try {
+      const response = await api.post('/employees', employeeData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar funcionário:', error);
+      throw error;
+    }
   },
   
-  // Atualizar colaborador
-  updateEmployee: async (id, data) => {
-    const response = await api.put(`/employees/${id}`, data);
-    return response.data;
+  // Atualizar funcionário
+  updateEmployee: async (id, employeeData) => {
+    try {
+      const response = await api.put(`/employees/${id}`, employeeData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar funcionário:', error);
+      throw error;
+    }
   },
   
-  // Remover colaborador
+  // Excluir funcionário
   deleteEmployee: async (id) => {
-    const response = await api.delete(`/employees/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/employees/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao excluir funcionário:', error);
+      throw error;
+    }
   }
 };
 
 // Serviços de departamentos
 export const departmentService = {
   // Listar departamentos
-  getDepartments: async (params) => {
-    const response = await api.get('/departments', { params });
-    return response.data;
+  getDepartments: async () => {
+    try {
+      const response = await api.get('/departments');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar departamentos:', error);
+      throw error;
+    }
   },
   
   // Obter departamento por ID
   getDepartmentById: async (id) => {
-    const response = await api.get(`/departments/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/departments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar departamento:', error);
+      throw error;
+    }
   },
   
-  // Criar novo departamento
-  createDepartment: async (data) => {
-    const response = await api.post('/departments', data);
-    return response.data;
+  // Criar departamento
+  createDepartment: async (departmentData) => {
+    try {
+      const response = await api.post('/departments', departmentData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar departamento:', error);
+      throw error;
+    }
   },
   
   // Atualizar departamento
-  updateDepartment: async (id, data) => {
-    const response = await api.put(`/departments/${id}`, data);
-    return response.data;
+  updateDepartment: async (id, departmentData) => {
+    try {
+      const response = await api.put(`/departments/${id}`, departmentData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar departamento:', error);
+      throw error;
+    }
   },
   
-  // Remover departamento
+  // Excluir departamento
   deleteDepartment: async (id) => {
-    const response = await api.delete(`/departments/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/departments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao excluir departamento:', error);
+      throw error;
+    }
   }
 };
 
 // Serviços de cargos
 export const positionService = {
   // Listar cargos
-  getPositions: async (params) => {
-    const response = await api.get('/positions', { params });
-    return response.data;
+  getPositions: async () => {
+    try {
+      const response = await api.get('/positions');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar cargos:', error);
+      throw error;
+    }
   },
   
   // Obter cargo por ID
   getPositionById: async (id) => {
-    const response = await api.get(`/positions/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/positions/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar cargo:', error);
+      throw error;
+    }
   },
   
-  // Criar novo cargo
-  createPosition: async (data) => {
-    const response = await api.post('/positions', data);
-    return response.data;
+  // Criar cargo
+  createPosition: async (positionData) => {
+    try {
+      const response = await api.post('/positions', positionData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar cargo:', error);
+      throw error;
+    }
   },
   
   // Atualizar cargo
-  updatePosition: async (id, data) => {
-    const response = await api.put(`/positions/${id}`, data);
-    return response.data;
+  updatePosition: async (id, positionData) => {
+    try {
+      const response = await api.put(`/positions/${id}`, positionData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar cargo:', error);
+      throw error;
+    }
   },
   
-  // Remover cargo
+  // Excluir cargo
   deletePosition: async (id) => {
-    const response = await api.delete(`/positions/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/positions/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao excluir cargo:', error);
+      throw error;
+    }
   }
 };
 
 // Serviços de movimentações
 export const movementService = {
   // Listar movimentações
-  getMovements: async (params) => {
-    const response = await api.get('/movements', { params });
-    return response.data;
+  getMovements: async (filters = {}) => {
+    try {
+      const response = await api.get('/movements', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar movimentações:', error);
+      throw error;
+    }
   },
   
   // Obter movimentação por ID
   getMovementById: async (id) => {
-    const response = await api.get(`/movements/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/movements/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar movimentação:', error);
+      throw error;
+    }
   },
   
-  // Criar nova movimentação
-  createMovement: async (data) => {
-    const response = await api.post('/movements', data);
-    return response.data;
+  // Criar movimentação
+  createMovement: async (movementData) => {
+    try {
+      const response = await api.post('/movements', movementData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar movimentação:', error);
+      throw error;
+    }
   },
   
-  // Aprovar movimentação
-  approveMovement: async (id) => {
-    const response = await api.put(`/movements/${id}/approve`);
-    return response.data;
+  // Atualizar movimentação
+  updateMovement: async (id, movementData) => {
+    try {
+      const response = await api.put(`/movements/${id}`, movementData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar movimentação:', error);
+      throw error;
+    }
   },
   
-  // Rejeitar movimentação
-  rejectMovement: async (id, motivoRejeicao) => {
-    const response = await api.put(`/movements/${id}/reject`, { motivoRejeicao });
-    return response.data;
+  // Excluir movimentação
+  deleteMovement: async (id) => {
+    try {
+      const response = await api.delete(`/movements/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao excluir movimentação:', error);
+      throw error;
+    }
+  }
+};
+
+// Serviços de tabelas salariais
+export const salaryTableService = {
+  // Listar tabelas salariais
+  getSalaryTables: async () => {
+    try {
+      const response = await api.get('/salary-tables');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar tabelas salariais:', error);
+      throw error;
+    }
+  },
+  
+  // Obter tabela salarial por ID
+  getSalaryTableById: async (id) => {
+    try {
+      const response = await api.get(`/salary-tables/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar tabela salarial:', error);
+      throw error;
+    }
+  },
+  
+  // Criar tabela salarial
+  createSalaryTable: async (salaryTableData) => {
+    try {
+      const response = await api.post('/salary-tables', salaryTableData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar tabela salarial:', error);
+      throw error;
+    }
+  },
+  
+  // Atualizar tabela salarial
+  updateSalaryTable: async (id, salaryTableData) => {
+    try {
+      const response = await api.put(`/salary-tables/${id}`, salaryTableData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar tabela salarial:', error);
+      throw error;
+    }
+  },
+  
+  // Excluir tabela salarial
+  deleteSalaryTable: async (id) => {
+    try {
+      const response = await api.delete(`/salary-tables/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao excluir tabela salarial:', error);
+      throw error;
+    }
   }
 };
 
@@ -256,50 +396,90 @@ export const movementService = {
 export const dashboardService = {
   // Obter estatísticas gerais
   getStats: async () => {
-    const response = await api.get('/dashboard/stats');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do dashboard:', error);
+      throw error;
+    }
   },
   
   // Obter distribuição por departamento
   getDepartmentDistribution: async () => {
-    const response = await api.get('/dashboard/department-distribution');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/department-distribution');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar distribuição por departamento:', error);
+      throw error;
+    }
   },
   
   // Obter distribuição por cargo
   getPositionDistribution: async () => {
-    const response = await api.get('/dashboard/position-distribution');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/position-distribution');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar distribuição por cargo:', error);
+      throw error;
+    }
   },
   
   // Obter distribuição por modalidade de trabalho
   getWorkModeDistribution: async () => {
-    const response = await api.get('/dashboard/workmode-distribution');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/workmode-distribution');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar distribuição por modalidade de trabalho:', error);
+      throw error;
+    }
   },
   
   // Obter distribuição por carga horária
   getWorkloadDistribution: async () => {
-    const response = await api.get('/dashboard/workload-distribution');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/workload-distribution');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar distribuição por carga horária:', error);
+      throw error;
+    }
   },
   
   // Obter histórico de movimentações
   getMovementHistory: async (meses = 12) => {
-    const response = await api.get('/dashboard/movement-history', { params: { meses } });
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/movement-history', { params: { meses } });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar histórico de movimentações:', error);
+      throw error;
+    }
   },
   
   // Obter análise salarial
   getSalaryAnalysis: async () => {
-    const response = await api.get('/dashboard/salary-analysis');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/salary-analysis');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error);
+      throw error;
+    }
   },
   
   // Obter comparativo de orçamento
   getBudgetComparison: async () => {
-    const response = await api.get('/dashboard/budget-comparison');
-    return response.data;
+    try {
+      const response = await api.get('/dashboard/budget-comparison');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar comparativo de orçamento:', error);
+      throw error;
+    }
   }
 };
 
