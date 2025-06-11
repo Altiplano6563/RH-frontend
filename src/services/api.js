@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base da API
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://sistema-rh-backend-production.up.railway.app/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://rh-backend-production.up.railway.app/api';
 
 // Configuração do axios
 const api = axios.create({
