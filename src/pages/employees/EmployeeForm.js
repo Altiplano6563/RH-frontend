@@ -63,13 +63,31 @@ const EmployeeForm = () => {
     }));
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aqui seria feita a chamada à API para salvar os dados
-    console.log('Dados do formulário:', formData);
     
-    // Redirecionar após salvar
-    navigate('/employees');
+    try {
+      console.log('Dados do formulário:', formData);
+      
+      // Importar o serviço da API
+      const { employeeService } = await import('../../services/api');
+      
+      if (isEditing) {
+        // Atualizar funcionário existente
+        await employeeService.updateEmployee(id, formData);
+        console.log('Funcionário atualizado com sucesso');
+      } else {
+        // Criar novo funcionário
+        await employeeService.createEmployee(formData);
+        console.log('Funcionário criado com sucesso');
+      }
+      
+      // Redirecionar após salvar
+      navigate('/employees');
+    } catch (error) {
+      console.error('Erro ao salvar funcionário:', error);
+      // Aqui você pode adicionar uma notificação de erro para o usuário
+    }
   };
   
   return (

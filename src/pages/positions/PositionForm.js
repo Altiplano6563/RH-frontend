@@ -54,13 +54,31 @@ const PositionForm = () => {
     }));
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aqui seria feita a chamada à API para salvar os dados
-    console.log('Dados do formulário:', formData);
     
-    // Redirecionar após salvar
-    navigate('/positions');
+    try {
+      console.log('Dados do formulário:', formData);
+      
+      // Importar o serviço da API
+      const { positionService } = await import('../../services/api');
+      
+      if (isEditing) {
+        // Atualizar cargo existente
+        await positionService.updatePosition(id, formData);
+        console.log('Cargo atualizado com sucesso');
+      } else {
+        // Criar novo cargo
+        await positionService.createPosition(formData);
+        console.log('Cargo criado com sucesso');
+      }
+      
+      // Redirecionar após salvar
+      navigate('/positions');
+    } catch (error) {
+      console.error('Erro ao salvar cargo:', error);
+      // Aqui você pode adicionar uma notificação de erro para o usuário
+    }
   };
   
   return (

@@ -63,13 +63,31 @@ const MovementForm = () => {
     }));
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aqui seria feita a chamada à API para salvar os dados
-    console.log('Dados do formulário:', formData);
     
-    // Redirecionar após salvar
-    navigate('/movements');
+    try {
+      console.log('Dados do formulário:', formData);
+      
+      // Importar o serviço da API
+      const { movementService } = await import('../../services/api');
+      
+      if (isEditing) {
+        // Atualizar movimentação existente
+        await movementService.updateMovement(id, formData);
+        console.log('Movimentação atualizada com sucesso');
+      } else {
+        // Criar nova movimentação
+        await movementService.createMovement(formData);
+        console.log('Movimentação criada com sucesso');
+      }
+      
+      // Redirecionar após salvar
+      navigate('/movements');
+    } catch (error) {
+      console.error('Erro ao salvar movimentação:', error);
+      // Aqui você pode adicionar uma notificação de erro para o usuário
+    }
   };
   
   // Dados de exemplo para os selects

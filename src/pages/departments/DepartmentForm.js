@@ -50,13 +50,31 @@ const DepartmentForm = () => {
     }));
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aqui seria feita a chamada à API para salvar os dados
-    console.log('Dados do formulário:', formData);
     
-    // Redirecionar após salvar
-    navigate('/departments');
+    try {
+      console.log('Dados do formulário:', formData);
+      
+      // Importar o serviço da API
+      const { departmentService } = await import('../../services/api');
+      
+      if (isEditing) {
+        // Atualizar departamento existente
+        await departmentService.updateDepartment(id, formData);
+        console.log('Departamento atualizado com sucesso');
+      } else {
+        // Criar novo departamento
+        await departmentService.createDepartment(formData);
+        console.log('Departamento criado com sucesso');
+      }
+      
+      // Redirecionar após salvar
+      navigate('/departments');
+    } catch (error) {
+      console.error('Erro ao salvar departamento:', error);
+      // Aqui você pode adicionar uma notificação de erro para o usuário
+    }
   };
   
   return (

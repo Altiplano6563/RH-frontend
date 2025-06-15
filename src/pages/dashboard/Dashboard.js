@@ -39,7 +39,7 @@ const Dashboard = () => {
           movementResponse,
           salaryResponse,
           budgetResponse
-        ] = await Promise.all([
+        ] = await Promise.allSettled([
           dashboardService.getStats(),
           dashboardService.getDepartmentDistribution(),
           dashboardService.getWorkModeDistribution(),
@@ -49,17 +49,56 @@ const Dashboard = () => {
           dashboardService.getBudgetComparison()
         ]);
         
-        // Atualizar estados com os dados recebidos
-        setStats(statsResponse.data);
-        setDepartmentDistribution(departmentResponse.data);
-        setWorkModeDistribution(workModeResponse.data);
-        setWorkloadDistribution(workloadResponse.data);
-        setMovementHistory(movementResponse.data);
-        setSalaryAnalysis(salaryResponse.data);
-        setBudgetComparison(budgetResponse.data);
+        // Atualizar estados com os dados recebidos ou dados de fallback
+        setStats(statsResponse.status === 'fulfilled' ? statsResponse.value.data : {
+          totalEmployees: 0,
+          activeEmployees: 0,
+          departments: 0,
+          positions: 0,
+          recentMovements: []
+        });
+        
+        setDepartmentDistribution(departmentResponse.status === 'fulfilled' ? departmentResponse.value.data : []);
+        setWorkModeDistribution(workModeResponse.status === 'fulfilled' ? workModeResponse.value.data : []);
+        setWorkloadDistribution(workloadResponse.status === 'fulfilled' ? workloadResponse.value.data : []);
+        setMovementHistory(movementResponse.status === 'fulfilled' ? movementResponse.value.data : []);
+        setSalaryAnalysis(salaryResponse.status === 'fulfilled' ? salaryResponse.value.data : {
+          salarioMedio: 0,
+          salarioPorNivel: [],
+          salarioForaTabela: []
+        });
+        setBudgetComparison(budgetResponse.status === 'fulfilled' ? budgetResponse.value.data : []);
+        
+        // Log de erros para debug
+        [statsResponse, departmentResponse, workModeResponse, workloadResponse, 
+         movementResponse, salaryResponse, budgetResponse].forEach((response, index) => {
+          if (response.status === 'rejected') {
+            console.error(`Erro ao carregar dados do dashboard (${index}):`, response.reason);
+          }
+        });
+        
       } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
-        toast.error('Erro ao carregar dados do dashboard. Por favor, tente novamente.');
+        toast.error('Erro ao carregar dados do dashboard. Exibindo dados em branco.');
+        
+        // Definir dados padrão em caso de erro
+        setStats({
+          totalEmployees: 0,
+          activeEmployees: 0,
+          departments: 0,
+          positions: 0,
+          recentMovements: []
+        });
+        setDepartmentDistribution([]);
+        setWorkModeDistribution([]);
+        setWorkloadDistribution([]);
+        setMovementHistory([]);
+        setSalaryAnalysis({
+          salarioMedio: 0,
+          salarioPorNivel: [],
+          salarioForaTabela: []
+        });
+        setBudgetComparison([]);
       } finally {
         setLoading(false);
       }
@@ -154,29 +193,37 @@ const Dashboard = () => {
                 <Typography variant="h6" gutterBottom>
                   Distribuição por Modalidade de Trabalho
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={workModeDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="count"
-                      nameKey="modalidade"
-                      label={({ modalidade, count, percent }) => 
-                        `${modalidade}: ${count} (${(percent * 100).toFixed(0)}%)`
-                      }
-                    >
-                      {workModeDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {workModeDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={workModeDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="count"
+                        nameKey="modalidade"
+                        label={({ modalidade, count, percent }) => 
+                          `${modalidade}: ${count} (${(percent * 100).toFixed(0)}%)`
+                        }
+                      >
+                        {workModeDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box display="flex" justifyContent="center" alignItems="center" height={300}>
+                    <Typography variant="body1" color="text.secondary">
+                      Nenhum dado disponível
+                    </Typography>
+                  </Box>
+                )}
               </Grid>
               
               {/* Distribuição por Carga Horária */}
@@ -184,19 +231,27 @@ const Dashboard = () => {
                 <Typography variant="h6" gutterBottom>
                   Distribuição por Carga Horária
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={workloadDistribution}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="cargaHoraria" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" name="Funcionários" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {workloadDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={workloadDistribution}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="cargaHoraria" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" name="Funcionários" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box display="flex" justifyContent="center" alignItems="center" height={300}>
+                    <Typography variant="body1" color="text.secondary">
+                      Nenhum dado disponível
+                    </Typography>
+                  </Box>
+                )}
               </Grid>
               
               {/* Distribuição por Departamento */}
@@ -204,20 +259,28 @@ const Dashboard = () => {
                 <Typography variant="h6" gutterBottom>
                   Distribuição por Departamento
                 </Typography>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart
-                    data={departmentDistribution}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    layout="vertical"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="nome" type="category" width={150} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" name="Funcionários" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {departmentDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                      data={departmentDistribution}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      layout="vertical"
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis dataKey="nome" type="category" width={150} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" name="Funcionários" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+                    <Typography variant="body1" color="text.secondary">
+                      Nenhum dado disponível
+                    </Typography>
+                  </Box>
+                )}
               </Grid>
             </Grid>
           </Box>
@@ -229,23 +292,31 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>
               Histórico de Movimentações (12 meses)
             </Typography>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart
-                data={movementHistory}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="periodo" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="promocoes" name="Promoções" stroke="#8884d8" />
-                <Line type="monotone" dataKey="transferencias" name="Transferências" stroke="#82ca9d" />
-                <Line type="monotone" dataKey="ajustesSalariais" name="Ajustes Salariais" stroke="#ffc658" />
-                <Line type="monotone" dataKey="desligamentos" name="Desligamentos" stroke="#ff8042" />
-                <Line type="monotone" dataKey="afastamentos" name="Afastamentos" stroke="#0088fe" />
-              </LineChart>
-            </ResponsiveContainer>
+            {movementHistory.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart
+                  data={movementHistory}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="periodo" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="promocoes" name="Promoções" stroke="#8884d8" />
+                  <Line type="monotone" dataKey="transferencias" name="Transferências" stroke="#82ca9d" />
+                  <Line type="monotone" dataKey="ajustesSalariais" name="Ajustes Salariais" stroke="#ffc658" />
+                  <Line type="monotone" dataKey="desligamentos" name="Desligamentos" stroke="#ff8042" />
+                  <Line type="monotone" dataKey="afastamentos" name="Afastamentos" stroke="#0088fe" />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+                <Typography variant="body1" color="text.secondary">
+                  Nenhum dado disponível
+                </Typography>
+              </Box>
+            )}
             
             {stats?.recentMovements && stats.recentMovements.length > 0 && (
               <>
@@ -293,20 +364,28 @@ const Dashboard = () => {
                 <Typography variant="h6" gutterBottom>
                   Salário Médio por Nível
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={salaryAnalysis?.salarioPorNivel || []}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="nivel" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
-                    <Legend />
-                    <Bar dataKey="salarioMedio" name="Salário Médio" fill="#8884d8" />
-                    <Bar dataKey="count" name="Quantidade" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {salaryAnalysis?.salarioPorNivel && salaryAnalysis.salarioPorNivel.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={salaryAnalysis.salarioPorNivel}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="nivel" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                      <Legend />
+                      <Bar dataKey="salarioMedio" name="Salário Médio" fill="#8884d8" />
+                      <Bar dataKey="count" name="Quantidade" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box display="flex" justifyContent="center" alignItems="center" height={300}>
+                    <Typography variant="body1" color="text.secondary">
+                      Nenhum dado disponível
+                    </Typography>
+                  </Box>
+                )}
               </Grid>
               
               {/* Salários Fora da Tabela */}
@@ -347,40 +426,50 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>
               Comparativo de Orçamento por Departamento
             </Typography>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={budgetComparison}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="nome" type="category" width={150} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="orcamento.salarios" name="Orçamento Salários" fill="#8884d8" />
-                <Bar dataKey="utilizado.salarios" name="Utilizado Salários" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-            
-            <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-              Comparativo de Headcount por Departamento
-            </Typography>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={budgetComparison}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="nome" type="category" width={150} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="orcamento.headcount" name="Orçamento Headcount" fill="#8884d8" />
-                <Bar dataKey="utilizado.headcount" name="Utilizado Headcount" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
+            {budgetComparison.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={budgetComparison}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="nome" type="category" width={150} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="orcamento.salarios" name="Orçamento Salários" fill="#8884d8" />
+                    <Bar dataKey="utilizado.salarios" name="Utilizado Salários" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+                
+                <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+                  Comparativo de Headcount por Departamento
+                </Typography>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={budgetComparison}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="nome" type="category" width={150} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="orcamento.headcount" name="Orçamento Headcount" fill="#8884d8" />
+                    <Bar dataKey="utilizado.headcount" name="Utilizado Headcount" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </>
+            ) : (
+              <Box display="flex" justifyContent="center" alignItems="center" height={400}>
+                <Typography variant="body1" color="text.secondary">
+                  Nenhum dado disponível
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
       </Paper>
