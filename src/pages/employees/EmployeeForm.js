@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  Typography, 
-  Button, 
-  Paper, 
+import {
+  Typography,
+  Button,
+  Paper,
   Grid,
   Box,
   TextField,
@@ -20,41 +20,53 @@ const EmployeeForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
-  
+
   const [formData, setFormData] = useState({
-    name: '',
+    nome: '',
     email: '',
-    phone: '',
-    department: '',
-    position: '',
+    cpf: '', // Adicionado
+    dataNascimento: '', // Adicionado
+    telefone: '',
+    departamento: '',
+    cargo: '',
+    salario: '',
+    dataAdmissao: '',
     status: 'Ativo',
-    hireDate: '',
-    salary: '',
-    workload: '',
-    workSchedule: '',
-    workMode: ''
+    modalidadeTrabalho: 'Presencial',
+    cargaHoraria: '',
+    jornadaTrabalho: '8h-17h',
+    genero: 'Prefiro não informar',
+    raca: 'Prefiro não informar',
+    notaAvaliacao: '',
+    observacoes: ''
   });
-  
+
   useEffect(() => {
     if (isEditing) {
       // Simulando busca de dados do funcionário
       // Em um caso real, aqui seria feita uma chamada à API
       setFormData({
-        name: 'João Silva',
+        nome: 'João Silva',
         email: 'joao.silva@empresa.com',
-        phone: '(11) 98765-4321',
-        department: 'TI',
-        position: 'Desenvolvedor',
+        cpf: '123.456.789-00',
+        dataNascimento: '1990-01-01',
+        telefone: '(11) 98765-4321',
+        departamento: 'TI',
+        cargo: 'Desenvolvedor',
+        salario: '5000',
+        dataAdmissao: '2022-03-01',
         status: 'Ativo',
-        hireDate: '2022-03-01',
-        salary: '5000',
-        workload: '40',
-        workSchedule: '09:00 - 18:00',
-        workMode: 'Híbrido'
+        modalidadeTrabalho: 'Híbrido',
+        cargaHoraria: '40',
+        jornadaTrabalho: '09:00 - 18:00',
+        genero: 'Masculino',
+        raca: 'Parda',
+        notaAvaliacao: '8',
+        observacoes: 'Ótimo funcionário'
       });
     }
   }, [isEditing, id]);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -62,16 +74,16 @@ const EmployeeForm = () => {
       [name]: value
     }));
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       console.log('Dados do formulário:', formData);
-      
+
       // Importar o serviço da API
       const { employeeService } = await import('../../services/api');
-      
+
       if (isEditing) {
         // Atualizar funcionário existente
         await employeeService.updateEmployee(id, formData);
@@ -81,7 +93,7 @@ const EmployeeForm = () => {
         await employeeService.createEmployee(formData);
         console.log('Funcionário criado com sucesso');
       }
-      
+
       // Redirecionar após salvar
       navigate('/employees');
     } catch (error) {
@@ -89,13 +101,13 @@ const EmployeeForm = () => {
       // Aqui você pode adicionar uma notificação de erro para o usuário
     }
   };
-  
+
   return (
     <div>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box display="flex" alignItems="center">
-          <Button 
-            startIcon={<ArrowBackIcon />} 
+          <Button
+            startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/employees')}
             sx={{ mr: 2 }}
           >
@@ -106,7 +118,7 @@ const EmployeeForm = () => {
           </Typography>
         </Box>
       </Box>
-      
+
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -114,8 +126,8 @@ const EmployeeForm = () => {
               <TextField
                 fullWidth
                 label="Nome"
-                name="name"
-                value={formData.name}
+                name="nome"
+                value={formData.nome}
                 onChange={handleChange}
                 required
               />
@@ -134,9 +146,31 @@ const EmployeeForm = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
+                label="CPF"
+                name="cpf"
+                value={formData.cpf}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Data de Nascimento"
+                name="dataNascimento"
+                type="date"
+                value={formData.dataNascimento}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
                 label="Telefone"
-                name="phone"
-                value={formData.phone}
+                name="telefone"
+                value={formData.telefone}
                 onChange={handleChange}
               />
             </Grid>
@@ -144,8 +178,8 @@ const EmployeeForm = () => {
               <FormControl fullWidth>
                 <InputLabel>Departamento</InputLabel>
                 <Select
-                  name="department"
-                  value={formData.department}
+                  name="departamento"
+                  value={formData.departamento}
                   onChange={handleChange}
                   label="Departamento"
                   required
@@ -161,8 +195,8 @@ const EmployeeForm = () => {
               <FormControl fullWidth>
                 <InputLabel>Cargo</InputLabel>
                 <Select
-                  name="position"
-                  value={formData.position}
+                  name="cargo"
+                  value={formData.cargo}
                   onChange={handleChange}
                   label="Cargo"
                   required
@@ -173,6 +207,30 @@ const EmployeeForm = () => {
                   <MenuItem value="Diretor">Diretor</MenuItem>
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Salário"
+                name="salario"
+                type="number"
+                value={formData.salario}
+                onChange={handleChange}
+                InputProps={{ startAdornment: 'R$ ' }}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Data de Admissão"
+                name="dataAdmissao"
+                type="date"
+                value={formData.dataAdmissao}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                required
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
@@ -191,53 +249,11 @@ const EmployeeForm = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Data de Contratação"
-                name="hireDate"
-                type="date"
-                value={formData.hireDate}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Salário"
-                name="salary"
-                type="number"
-                value={formData.salary}
-                onChange={handleChange}
-                InputProps={{ startAdornment: 'R$ ' }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Carga Horária (horas semanais)"
-                name="workload"
-                type="number"
-                value={formData.workload}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Horário de Trabalho"
-                name="workSchedule"
-                value={formData.workSchedule}
-                onChange={handleChange}
-                placeholder="Ex: 09:00 - 18:00"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Modalidade de Trabalho</InputLabel>
                 <Select
-                  name="workMode"
-                  value={formData.workMode}
+                  name="modalidadeTrabalho"
+                  value={formData.modalidadeTrabalho}
                   onChange={handleChange}
                   label="Modalidade de Trabalho"
                 >
@@ -247,11 +263,82 @@ const EmployeeForm = () => {
                 </Select>
               </FormControl>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Carga Horária (horas semanais)"
+                name="cargaHoraria"
+                type="number"
+                value={formData.cargaHoraria}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Jornada de Trabalho</InputLabel>
+                <Select
+                  name="jornadaTrabalho"
+                  value={formData.jornadaTrabalho}
+                  onChange={handleChange}
+                  label="Jornada de Trabalho"
+                >
+                  <MenuItem value="8h-17h">8h-17h</MenuItem>
+                  <MenuItem value="9h-18h">9h-18h</MenuItem>
+                  <MenuItem value="10h-19h">10h-19h</MenuItem>
+                  <MenuItem value="Flexível">Flexível</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Gênero</InputLabel>
+                <Select
+                  name="genero"
+                  value={formData.genero}
+                  onChange={handleChange}
+                  label="Gênero"
+                >
+                  <MenuItem value="Masculino">Masculino</MenuItem>
+                  <MenuItem value="Feminino">Feminino</MenuItem>
+                  <MenuItem value="Não-binário">Não-binário</MenuItem>
+                  <MenuItem value="Prefiro não informar">Prefiro não informar</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Raça</InputLabel>
+                <Select
+                  name="raca"
+                  value={formData.raca}
+                  onChange={handleChange}
+                  label="Raça"
+                >
+                  <MenuItem value="Branca">Branca</MenuItem>
+                  <MenuItem value="Preta">Preta</MenuItem>
+                  <MenuItem value="Parda">Parda</MenuItem>
+                  <MenuItem value="Amarela">Amarela</MenuItem>
+                  <MenuItem value="Indígena">Indígena</MenuItem>
+                  <MenuItem value="Prefiro não informar">Prefiro não informar</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Observações"
+                name="observacoes"
+                value={formData.observacoes}
+                onChange={handleChange}
+                multiline
+                rows={4}
+              />
+            </Grid>
             <Grid item xs={12}>
               <Box display="flex" justifyContent="flex-end" mt={2}>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
+                <Button
+                  variant="contained"
+                  color="primary"
                   type="submit"
                   startIcon={<SaveIcon />}
                 >
@@ -267,3 +354,5 @@ const EmployeeForm = () => {
 };
 
 export default EmployeeForm;
+
+
